@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <link href="./js/libraries/play-on-click/play-on-click.css" rel="stylesheet">
+        <!-- If you want to use a different A-Frame version -->
+        <!--<script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>-->
+        <script src="./js/libraries/aframe/aframe.min.js"></script>
+        <script src="./js/libraries/aframe/aframe-extras.min.js"></script>
+        <script src="./js/libraries/play-on-click/play-on-click.js"></script>
+        <script>
+			const vertexShader = `
+			varying vec2 vUv;
+			uniform sampler2D tex;
+
+		    /*
+		    // defaults
+		    float _Displacement = 10.0;
+			float _Maximum = 99.0;
+			float _BaselineLength = 0.5;
+    		float _SphericalAngle = 10.0;
+    		*/
+
+    		// testing
+		    float _Displacement = 20.0; 
+			float _Maximum = 30.0; 
+			float _BaselineLength = 180.0;
+    		float _SphericalAngle = 3.143; 
+
+	        float getDepthSpherical(float d) {
+	            return asin(_BaselineLength * sin(_SphericalAngle)) / asin(d);
+	        }
+
+			void main() {
+				  gl_PointSize = 10.0;
+
+          vUv = uv;
+			    vec2 uv2 = vec2(uv.x, uv.y * 0.5);
+
+			    vec4 col = texture2D(tex, uv2);
+	    
+			    //vec3 newPosition = position + normal * displacement;
+
+			    float disp = getDepthSpherical(col.x);
+			    vec3 newPosition = normal * clamp(disp, -_Maximum, 0.0) * _Displacement;
+			    newPosition.y *= -1.0;
+
+			    gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+			}`
+			
+			const fragmentShader = `
+			varying vec2 vUv;
+			uniform sampler2D tex;
+
+			void main() {
+			    vec2 uv = vec2(vUv.x, 0.5 + vUv.y * 0.5);
+
+			    vec4 col = texture2D(tex, uv);
+			    gl_FragColor = col;
+			}`
+				     
+			AFRAME.registerShader("eqr-video", {
+				schema: {
+					tex: {type: "map", is: "uniform"}
+				},
+				transparent: false,
+				vertexShader: vertexShader,
+				fragmentShader: fragmentShader
+			});	    
+      
+      // This is needed to render geometry as points only
+      AFRAME.registerComponent("point-cloud", {
+        init: function () {
+          const geometry = new THREE.SphereGeometry(1, 256, 256);
+          const points = new THREE.Points(geometry);
+          this.el.setObject3D("mesh", points);
+        }
+      });
+
+      AFRAME.registerComponent('disable-culling', {
+        init: function(){
+          var object3D = this.el.sceneEl.object3D;
+          object3D.traverse((node) => {
+            node.frustumCulled = false
+          })
+        }
+      })
+      </script>
+    </head>
+
+    <body>
+        <div id="infoOverlay"> 
+            <!-- Play-on-click banner ensures sound and video works correctly. -->
+            <div class="overlayGreyout" id="click-anywhere-banner">
+                <div id="click-anywhere-image">
+                    <img src="./js/libraries/play-on-click/play-on-click.png">
+                </div>
+            </div>
+        </div>
+
+        <a-scene 
+            preloader="Just a moment...; clickToClose: false;"
+            webxr="optionalFeatures: dom-overlay,unbounded; overlayElement: #infoOverlay;"
+            renderer="colorManagement: true; toneMapping: 'ACESFilmic'; physicallyCorrectLights: true; exposure: 2.0"   
+            loading-screen="backgroundColor: #111111"
+            gltf-model="dracoDecoderPath: ./js/libraries/draco/"
+            background="color: black">
+
+            <a-assets>
+                <video 
+                    src="https://cdn.glitch.global/eb5bffd5-840f-4779-87f6-05b21bcbd800/bicycle_360.mp4?v=1734305931170" 
+                    autoplay="true" 
+                    loop="true"
+                    crossorigin="anonymous"
+                    id="video1"> 
+                </video>
+            </a-assets>
+
+            <a-entity play-on-click></a-entity>
+
+          <a-entity point-cloud
+                material="shader: eqr-video; tex: #video1;"
+                visible="true"
+                disable-culling
+                position="0.5 1 -1"
+                rotation="0 180 0">
+          </a-entity>
+     
+        </a-scene>  
+            </body>
+
+</html>
