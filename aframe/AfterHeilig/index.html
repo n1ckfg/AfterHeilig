@@ -9,64 +9,79 @@
         <script src="./js/libraries/aframe/aframe-extras.min.js"></script>
         <script src="./js/libraries/play-on-click/play-on-click.js"></script>
         <script>
-			const vertexShader = `
-			varying vec2 vUv;
-			uniform sampler2D tex;
+      function isMobileBrowser() {
+        const mobileUserAgents = [ /Android/i, /webOS/i, /iPhone/i, /iPad/i, /iPod/i, /BlackBerry/i, /Windows Phone/i ];
 
-		    /*
-		    // defaults
-		    float _Displacement = 10.0;
-			float _Maximum = 99.0;
-			float _BaselineLength = 0.5;
-    		float _SphericalAngle = 10.0;
-    		*/
+        if (mobileUserAgents.some(ua => navigator.userAgent.match(ua))) return true;
 
-    		// testing
-		    float _Displacement = 20.0; 
-			float _Maximum = 30.0; 
-			float _BaselineLength = 180.0;
-    		float _SphericalAngle = 3.143; 
+        return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.screen.width < 768));
 
-	        float getDepthSpherical(float d) {
-	            return asin(_BaselineLength * sin(_SphericalAngle)) / asin(d);
-	        }
+        return false;
+      }
+                    
+      const vertexShader = `
+            varying vec2 vUv;
+            uniform sampler2D tex;
+      uniform float pointSize;
 
-			void main() {
-				  gl_PointSize = 10.0;
+            /*
+            // defaults
+            float _Displacement = 10.0;
+            float _Maximum = 99.0;
+            float _BaselineLength = 0.5;
+            float _SphericalAngle = 10.0;
+            */
+
+            // testing
+            float _Displacement = 20.0; 
+            float _Maximum = 30.0; 
+            float _BaselineLength = 180.0;
+            float _SphericalAngle = 3.143; 
+
+            float getDepthSpherical(float d) {
+                return asin(_BaselineLength * sin(_SphericalAngle)) / asin(d);
+            }
+
+            void main() {
+                  gl_PointSize = pointSize;
 
           vUv = uv;
-			    vec2 uv2 = vec2(uv.x, uv.y * 0.5);
+                vec2 uv2 = vec2(uv.x, uv.y * 0.5);
 
-			    vec4 col = texture2D(tex, uv2);
-	    
-			    //vec3 newPosition = position + normal * displacement;
+                vec4 col = texture2D(tex, uv2);
+        
+                //vec3 newPosition = position + normal * displacement;
 
-			    float disp = getDepthSpherical(col.x);
-			    vec3 newPosition = normal * clamp(disp, -_Maximum, 0.0) * _Displacement;
-			    newPosition.y *= -1.0;
+                float disp = getDepthSpherical(col.x);
+                vec3 newPosition = normal * clamp(disp, -_Maximum, 0.0) * _Displacement;
+                newPosition.y *= -1.0;
 
-			    gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
-			}`
-			
-			const fragmentShader = `
-			varying vec2 vUv;
-			uniform sampler2D tex;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+            }`
+            
+            const fragmentShader = `
+            varying vec2 vUv;
+            uniform sampler2D tex;
 
-			void main() {
-			    vec2 uv = vec2(vUv.x, 0.5 + vUv.y * 0.5);
+            void main() {
+                vec2 uv = vec2(vUv.x, 0.5 + vUv.y * 0.5);
 
-			    vec4 col = texture2D(tex, uv);
-			    gl_FragColor = col;
-			}`
-				     
-			AFRAME.registerShader("eqr-video", {
-				schema: {
-					tex: {type: "map", is: "uniform"}
-				},
-				transparent: false,
-				vertexShader: vertexShader,
-				fragmentShader: fragmentShader
-			});	    
+                vec4 col = texture2D(tex, uv);
+                gl_FragColor = col;
+            }`
+                     
+      let pointSize = 25.0;
+      if (isMobileBrowser()) pointSize = 50.0;
+          
+            AFRAME.registerShader("eqr-video", {
+                schema: {
+                    tex: {type: "map", is: "uniform"},
+          pointSize: {type: 'number', is: 'uniform', default: pointSize}
+        },
+                transparent: false,
+                vertexShader: vertexShader,
+                fragmentShader: fragmentShader
+            });     
       
       // This is needed to render geometry as points only
       AFRAME.registerComponent("point-cloud", {
