@@ -72,7 +72,7 @@
             void main() {
                 vec2 uv = vec2(vUv.x, 0.5 + vUv.y * 0.5);
 
-                vec4 col = vec4(saturation(texture2D(tex, uv).xyz, 2.0), 1.0);
+                vec4 col = vec4(saturation(texture2D(tex, uv).xyz, 1.5), 1.0);
                 gl_FragColor = col;
             }`
                      
