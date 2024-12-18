@@ -70,8 +70,8 @@
                 gl_FragColor = col;
             }`
                      
-      let pointSize = 25.0;
-      if (isMobileBrowser()) pointSize = 50.0;
+      let pointSize = 10.0;
+      if (isMobileBrowser()) pointSize = 20.0;
           
             AFRAME.registerShader("eqr-video", {
                 schema: {
@@ -86,7 +86,7 @@
       // This is needed to render geometry as points only
       AFRAME.registerComponent("point-cloud", {
         init: function () {
-          const geometry = new THREE.SphereGeometry(1, 256, 256);
+          const geometry = new THREE.SphereGeometry(1, 512, 512);
           const points = new THREE.Points(geometry);
           this.el.setObject3D("mesh", points);
         }
@@ -123,7 +123,7 @@
 
             <a-assets>
                 <video 
-                    src="https://fox-gieg.com/videos3/Comp4_1K_2mbps.mp4" 
+                    src="Comp4_1K_2mbps.mp4" 
                     autoplay="true" 
                     loop="true"
                     crossorigin="anonymous"
