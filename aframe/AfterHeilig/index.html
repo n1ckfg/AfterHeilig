@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-    
+
     <head>
         <link href="./js/libraries/play-on-click/play-on-click.css" rel="stylesheet">
         <!-- If you want to use a different A-Frame version -->
@@ -9,20 +9,31 @@
         <script src="./js/libraries/aframe/aframe-extras.min.js"></script>
         <script src="./js/libraries/play-on-click/play-on-click.js"></script>
         <script>
-      function isMobileBrowser() {
-        const mobileUserAgents = [ /Android/i, /webOS/i, /iPhone/i, /iPad/i, /iPod/i, /BlackBerry/i, /Windows Phone/i ];
+            function isMobileBrowser() {
+                const mobileUserAgents = [ /Android/i, /webOS/i, /iPhone/i, /iPad/i, /iPod/i, /BlackBerry/i, /Windows Phone/i ];
 
-        if (mobileUserAgents.some(ua => navigator.userAgent.match(ua))) return true;
+                if (mobileUserAgents.some(ua => navigator.userAgent.match(ua))) return true;
 
-        return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.screen.width < 768));
+                return (('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.screen.width < 768));
 
-        return false;
-      }
-                    
-      const vertexShader = `
+                return false;
+            }
+
+            function isIosBrowser() {
+                return [
+                    "iPad Simulator", 
+                    "iPhone Simulator", 
+                    "iPod Simulator", 
+                    "iPad", 
+                    "iPhone", 
+                    "iPod" 
+                ].includes(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+            }
+
+            const vertexShader = `
             varying vec2 vUv;
             uniform sampler2D tex;
-      uniform float pointSize;
+            uniform float pointSize;
 
             /*
             // defaults
@@ -43,13 +54,13 @@
             }
 
             void main() {
-                  gl_PointSize = pointSize;
+                gl_PointSize = pointSize;
 
-          vUv = uv;
+                vUv = uv;
                 vec2 uv2 = vec2(uv.x, uv.y * 0.5);
 
                 vec4 col = texture2D(tex, uv2);
-        
+
                 //vec3 newPosition = position + normal * displacement;
 
                 float disp = getDepthSpherical(col.x);
@@ -58,7 +69,7 @@
 
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
             }`
-            
+
             const fragmentShader = `
             varying vec2 vUv;
             uniform sampler2D tex;
@@ -75,38 +86,44 @@
                 vec4 col = vec4(saturation(texture2D(tex, uv).xyz, 1.5), 1.0);
                 gl_FragColor = col;
             }`
-                     
-      let pointSize = 10.0;
-      if (isMobileBrowser()) pointSize = 20.0;
-          
+
+            let pointSize = 10.0;
+            if (isMobileBrowser()) {
+                if (isIosBrowser()) {
+                    pointSize = 35.0;          
+                } else {
+                    pointSize = 25.0;
+                }
+            }
+
             AFRAME.registerShader("eqr-video", {
                 schema: {
-                    tex: {type: "map", is: "uniform"},
-          pointSize: {type: 'number', is: 'uniform', default: pointSize}
-        },
+                    tex: { type: "map", is: "uniform" },
+                    pointSize: { type: "number", is: "uniform", default: pointSize }
+                },
                 transparent: false,
                 vertexShader: vertexShader,
                 fragmentShader: fragmentShader
             });     
-      
-      // This is needed to render geometry as points only
-      AFRAME.registerComponent("point-cloud", {
-        init: function () {
-          const geometry = new THREE.SphereGeometry(1, 512, 512);
-          const points = new THREE.Points(geometry);
-          this.el.setObject3D("mesh", points);
-        }
-      });
 
-      AFRAME.registerComponent('disable-culling', {
-        init: function(){
-          var object3D = this.el.sceneEl.object3D;
-          object3D.traverse((node) => {
-            node.frustumCulled = false
-          })
-        }
-      })
-      </script>
+            // This is needed to render geometry as points only
+            AFRAME.registerComponent("point-cloud", {
+                init: function() {
+                    const geometry = new THREE.SphereGeometry(1, 512, 512);
+                    const points = new THREE.Points(geometry);
+                    this.el.setObject3D("mesh", points);
+                }
+            });
+
+            AFRAME.registerComponent("disable-culling", {
+                init: function() {
+                    let object3D = this.el.sceneEl.object3D;
+                    object3D.traverse((node) => {
+                        node.frustumCulled = false;
+                    });
+                }
+            });
+        </script>
     </head>
 
     <body>
@@ -139,15 +156,15 @@
 
             <a-entity play-on-click></a-entity>
 
-          <a-entity point-cloud
+            <a-entity point-cloud
                 material="shader: eqr-video; tex: #video1;"
                 visible="true"
                 disable-culling
                 position="0.5 1 -1"
                 rotation="0 -90 0">
-          </a-entity>
-     
+            </a-entity>
+
         </a-scene>  
-            </body>
+    </body>
 
 </html>
