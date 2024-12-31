@@ -65,7 +65,7 @@
 
                 float disp = getDepthSpherical(col.x);
                 vec3 newPosition = normal * clamp(disp, -_Maximum, 0.0) * _Displacement;
-                newPosition.y *= -1.0;
+                newPosition.xy *= -1.0;
 
                 gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
             }`
@@ -161,7 +161,7 @@
                 visible="true"
                 disable-culling
                 position="0.5 1 -1"
-                rotation="0 -90 0">
+                rotation="0 90 0">
             </a-entity>
 
         </a-scene>  
