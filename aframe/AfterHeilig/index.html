@@ -136,14 +136,21 @@
             </div>
         </div>
 
-        <a-scene 
+        <!--<a-scene 
             preloader="Just a moment...; clickToClose: false;"
             webxr="optionalFeatures: dom-overlay,unbounded; overlayElement: #infoOverlay;"
             renderer="colorManagement: true; toneMapping: 'ACESFilmic'; physicallyCorrectLights: true; exposure: 2.0"   
             loading-screen="backgroundColor: #111111"
             gltf-model="dracoDecoderPath: ./js/libraries/draco/"
-            background="color: black">
+            background="color: black">-->
 
+        <a-scene 
+            preloader="Just a moment...; clickToClose: false;"
+            webxr="optionalFeatures: dom-overlay,unbounded; overlayElement: #infoOverlay;"
+            renderer="colorManagement: true; toneMapping: 'ACESFilmic'; physicallyCorrectLights: true; exposure: 2.0"   
+            loading-screen="backgroundColor: #111111"
+            background="color: black">
+            
             <a-assets>
                 <video 
                     src="Comp4_1K_2mbps.mp4" 
